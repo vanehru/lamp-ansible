@@ -36,27 +36,29 @@
   tags: ['selinux', 'config']
 
 - name: Set SELinux to desired state immediately
-  command: "setenforce {{ '1' if selinux_state == 'enforcing' else '0' }}"
+  selinux:
+    policy: "{{ selinux_policy }}"
+    state: "{{ selinux_state }}"
   when: selinux_state in ['enforcing', 'permissive']
-  failed_when: false
-  changed_when: false
   tags: ['selinux', 'config']
 
 - name: Set SELinux booleans for web services
-  command: "setsebool -P {{ item }} on"
+  seboolean:
+    name: "{{ item }}"
+    state: yes
+    persistent: yes
   loop:
     - httpd_can_network_connect
     - httpd_can_network_connect_db
     - httpd_execmem
     - httpd_unified
-  failed_when: false
-  changed_when: false
   tags: ['selinux', 'booleans']
 
 - name: Set SELinux context for web directory
-  command: "semanage fcontext -a -t httpd_sys_content_t '{{ apache_document_root }}(/.*)?'"
-  failed_when: false
-  changed_when: false
+  sefcontext:
+    target: "{{ apache_document_root }}(/.*)?" 
+    setype: httpd_sys_content_t
+    state: present
   tags: ['selinux', 'context']
 
 - name: Check if web directory exists
@@ -74,7 +76,7 @@
 - name: Check if reboot is required for SELinux changes
   debug:
     msg: "WARNING: System reboot may be required if SELinux mode was changed from disabled to enforcing"
-  when: selinux_config.reboot_required | default(false)
+  when: selinux_config.changed and selinux_state == 'enforcing'
   tags: ['selinux', 'reboot']
 
 - name: Verify SELinux is working correctly

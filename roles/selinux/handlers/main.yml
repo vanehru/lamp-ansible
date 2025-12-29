@@ -5,4 +5,6 @@
   systemd:
     name: auditd
     state: restarted
+  become: yes
   ignore_errors: yes
+  listen: "restart auditd"

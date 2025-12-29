@@ -35,6 +35,11 @@ firewall_allowed_services:
 # System Configuration
 timezone: "America/New_York"
 
+# Security Settings
+security_disable_test_pages: true  # Set to false only for development
+security_enable_ssl: true
+security_harden_apache: true
+
 # PHPMailer and Azure Email Services Configuration
 phpmailer_install_dir: "/var/www/phpmailer"
 

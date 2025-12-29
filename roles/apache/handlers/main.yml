@@ -5,8 +5,13 @@
   systemd:
     name: httpd
     state: restarted
+    enabled: yes
+  become: yes
+  listen: "restart apache"
 
 - name: reload apache
   systemd:
     name: httpd
     state: reloaded
+  become: yes
+  listen: "reload apache"

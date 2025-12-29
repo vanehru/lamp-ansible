@@ -71,24 +71,21 @@
   tags: ['apache', 'content']
 
 - name: Configure firewall for HTTP
-  command: firewall-cmd --permanent --add-service=http
+  firewalld:
+    service: http
+    permanent: yes
+    state: enabled
+    immediate: yes
   when: firewall_enabled | bool
-  failed_when: false
-  changed_when: false
   tags: ['apache', 'firewall']
 
 - name: Configure firewall for HTTPS
-  command: firewall-cmd --permanent --add-service=https
+  firewalld:
+    service: https
+    permanent: yes
+    state: enabled
+    immediate: yes
   when: firewall_enabled | bool
-  failed_when: false
-  changed_when: false
-  tags: ['apache', 'firewall']
-
-- name: Reload firewall
-  command: firewall-cmd --reload
-  when: firewall_enabled | bool
-  failed_when: false
-  changed_when: false
   tags: ['apache', 'firewall']
 
 - name: Start and enable Apache service

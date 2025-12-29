@@ -45,8 +45,8 @@
   tags: ['packages']
 
 - name: Set timezone
-  command: timedatectl set-timezone "{{ timezone }}"
-  changed_when: false
+  timezone:
+    name: "{{ timezone }}"
   tags: ['timezone']
 
 - name: Ensure firewalld is installed
@@ -63,13 +63,6 @@
     enabled: yes
   when: firewall_enabled | bool
   tags: ['firewall']
-
-- name: Disable SELinux temporarily if needed for initial setup
-  command: setenforce 0
-  when: ansible_selinux.status is defined and ansible_selinux.status == "enabled" and ansible_selinux.mode != "permissive"
-  failed_when: false
-  changed_when: false
-  tags: ['selinux']
 
 - name: Display system information
   debug:

@@ -66,32 +66,52 @@
   notify: restart apache
   tags: ['php', 'config']
 
-- name: Enable PHP error display for development (disable in production)
+- name: Disable PHP error display for security
   lineinfile:
     path: /etc/php.ini
     regexp: '^display_errors'
-    line: "display_errors = On"
+    line: "display_errors = Off"
     backup: yes
   notify: restart apache
   tags: ['php', 'config']
 
-- name: Deploy PHP info test page
+- name: Enable PHP error logging
+  lineinfile:
+    path: /etc/php.ini
+    regexp: '^log_errors'
+    line: "log_errors = On"
+    backup: yes
+  notify: restart apache
+  tags: ['php', 'config']
+
+- name: Set PHP error log location
+  lineinfile:
+    path: /etc/php.ini
+    regexp: '^;?error_log'
+    line: "error_log = /var/log/php_errors.log"
+    backup: yes
+  notify: restart apache
+  tags: ['php', 'config']
+
+- name: Deploy PHP info test page (development only)
   template:
     src: info.php.j2
     dest: "{{ apache_document_root }}/info.php"
     owner: apache
     group: apache
     mode: '0644'
-  tags: ['php', 'content']
+  tags: ['php', 'content', 'development']
+  when: ansible_hostname is search('dev') or ansible_hostname is search('test')
 
-- name: Deploy PHP MySQL connection test page
+- name: Deploy PHP MySQL connection test page (development only)
   template:
     src: db_test.php.j2
     dest: "{{ apache_document_root }}/db_test.php"
     owner: apache
     group: apache
     mode: '0644'
-  tags: ['php', 'content']
+  tags: ['php', 'content', 'development']
+  when: ansible_hostname is search('dev') or ansible_hostname is search('test')
 
 - name: Restart Apache to load PHP module
   systemd:

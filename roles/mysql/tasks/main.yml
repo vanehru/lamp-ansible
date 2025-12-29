@@ -19,17 +19,19 @@
   tags: ['mysql', 'service']
 
 - name: Check if root password is already set
-  shell: mysqladmin -u root status
+  command: mysqladmin -u root status
   register: mysql_root_status
   changed_when: false
   failed_when: false
   tags: ['mysql', 'security']
 
 - name: Set MySQL root password
-  shell: |
-    mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '{{ mysql_root_password }}';"
+  mysql_user:
+    name: root
+    password: "{{ mysql_root_password }}"
+    login_unix_socket: /var/lib/mysql/mysql.sock
+    state: present
   when: mysql_root_status.rc == 0
-  failed_when: false
   no_log: true
   tags: ['mysql', 'security']
 
@@ -43,34 +45,43 @@
   tags: ['mysql', 'config']
 
 - name: Remove anonymous MySQL users
-  shell: mysql --defaults-file=/root/.my.cnf -e "DELETE FROM mysql.user WHERE User='';"
-  failed_when: false
-  changed_when: false
+  mysql_user:
+    name: ''
+    host_all: yes
+    state: absent
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  no_log: true
   tags: ['mysql', 'security']
 
 - name: Remove MySQL test database
-  shell: mysql --defaults-file=/root/.my.cnf -e "DROP DATABASE IF EXISTS test;"
-  failed_when: false
-  changed_when: false
-  tags: ['mysql', 'security']
-
-- name: Flush privileges
-  shell: mysql --defaults-file=/root/.my.cnf -e "FLUSH PRIVILEGES;"
-  changed_when: false
+  mysql_db:
+    name: test
+    state: absent
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  no_log: true
   tags: ['mysql', 'security']
 
 - name: Create application database
-  shell: mysql --defaults-file=/root/.my.cnf -e "CREATE DATABASE IF NOT EXISTS {{ mysql_database }};"
-  changed_when: false
+  mysql_db:
+    name: "{{ mysql_database }}"
+    state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  no_log: true
   tags: ['mysql', 'database']
 
 - name: Create application database user
-  shell: |
-    mysql --defaults-file=/root/.my.cnf -e "CREATE USER IF NOT EXISTS '{{ mysql_user }}'@'localhost' IDENTIFIED BY '{{ mysql_user_password }}';"
-    mysql --defaults-file=/root/.my.cnf -e "GRANT ALL PRIVILEGES ON {{ mysql_database }}.* TO '{{ mysql_user }}'@'localhost';"
-    mysql --defaults-file=/root/.my.cnf -e "FLUSH PRIVILEGES;"
+  mysql_user:
+    name: "{{ mysql_user }}"
+    password: "{{ mysql_user_password }}"
+    priv: "{{ mysql_database }}.*:ALL"
+    host: localhost
+    state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
   no_log: true
-  changed_when: false
   tags: ['mysql', 'database']
 
 - name: Configure MariaDB bind address
