@@ -44,9 +44,16 @@
     state: present
   tags: ['packages']
 
+- name: Fail if timezone variable is not defined
+  fail:
+    msg: "The 'timezone' variable must be defined (e.g., timezone: 'UTC')."
+  when: timezone is not defined
+  tags: ['timezone']
+
 - name: Set timezone
   timezone:
     name: "{{ timezone }}"
+  when: timezone is defined
   tags: ['timezone']
 
 - name: Ensure firewalld is installed
@@ -62,6 +69,7 @@
     state: started
     enabled: yes
   when: firewall_enabled | bool
+  failed_when: false
   tags: ['firewall']
 
 - name: Display system information
@@ -71,4 +79,5 @@
       - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
       - "Kernel: {{ ansible_kernel }}"
       - "Architecture: {{ ansible_architecture }}"
+  ignore_errors: true
   tags: ['info']
