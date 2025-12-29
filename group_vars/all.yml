@@ -1,0 +1,63 @@
+---
+# Global Variables for LAMP Stack Deployment
+# Customize these variables according to your requirements
+
+# Apache Configuration
+apache_listen_port: 80
+apache_listen_port_ssl: 443
+apache_document_root: /var/www/html
+apache_server_admin: admin@localhost
+
+# MySQL/MariaDB Configuration
+mysql_root_password: "{{ vault_mysql_root_password }}"
+mysql_database: "webapp_db"
+mysql_user: "webapp_user"
+mysql_user_password: "{{ vault_mysql_user_password }}"
+mysql_bind_address: "127.0.0.1"
+
+# PHP Configuration
+php_memory_limit: "256M"
+php_max_execution_time: "300"
+php_upload_max_filesize: "64M"
+php_post_max_size: "64M"
+
+# SELinux Configuration
+selinux_state: enforcing  # Options: enforcing, permissive, disabled
+selinux_policy: targeted
+
+# Firewall Configuration
+firewall_enabled: true
+firewall_allowed_services:
+  - http
+  - https
+  - ssh
+
+# System Configuration
+timezone: "America/New_York"
+
+# PHPMailer and Azure Email Services Configuration
+phpmailer_install_dir: "/var/www/phpmailer"
+
+# Azure Communication Services SMTP Settings
+azure_smtp_host: "smtp.azurecomm.net"
+azure_smtp_port: 587
+azure_smtp_username: "{{ vault_azure_smtp_username }}"
+azure_smtp_password: "{{ vault_azure_smtp_password }}"
+azure_smtp_encryption: "tls"  # Options: tls (port 587) or ssl (port 465)
+
+# Email Sender Configuration
+mail_from_address: "DoNotReply@44cb25b1-3f6f-4c4a-b4af-656b5bb20abf.azurecomm.net"
+mail_from_name: "smtp-poc-test"
+
+# Email Testing
+test_email_recipient: "admin@localhost"  # Change this to your test email
+
+# Email Logging Configuration
+mail_log_enabled: true
+mail_log_path: "/var/log/phpmailer"
+mail_debug_level: 0  # 0=off, 1=client, 2=server, 3=connection, 4=lowlevel
+
+# Azure Application Details (for reference)
+# Application (client) ID: {{ vault_azure_client_id }}
+# Object ID: {{ vault_azure_object_id }}
+# Directory (tenant) ID: {{ vault_azure_tenant_id }}

@@ -1,0 +1,46 @@
+---
+# Main Playbook for LAMP Stack Deployment with SELinux
+# This playbook orchestrates the installation and configuration of:
+# - Common system setup
+# - SELinux configuration
+# - Apache Web Server
+# - MySQL/MariaDB Database
+# - PHP
+
+- name: Deploy LAMP Stack with SELinux on RHEL/CentOS
+  hosts: webservers
+  become: yes
+  gather_facts: yes
+
+  pre_tasks:
+    - name: Display target host information
+      debug:
+        msg: "Deploying LAMP stack on {{ inventory_hostname }} ({{ ansible_distribution }} {{ ansible_distribution_version }})"
+
+  roles:
+    - role: common
+      tags: ['common', 'setup']
+    
+    - role: selinux
+      tags: ['selinux', 'security']
+    
+    - role: apache
+      tags: ['apache', 'webserver']
+    
+    - role: mysql
+      tags: ['mysql', 'database']
+    
+    - role: php
+      tags: ['php', 'webserver']
+    
+    - role: phpmailer
+      tags: ['phpmailer', 'email', 'azure']
+
+  post_tasks:
+    - name: Display completion message
+      debug:
+        msg: 
+          - "LAMP Stack deployment completed successfully!"
+          - "Apache: http://{{ ansible_default_ipv4.address }}"
+          - "Test PHP: http://{{ ansible_default_ipv4.address }}/info.php"
+          - "SELinux Status: {{ ansible_selinux.status }}"

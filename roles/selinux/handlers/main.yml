@@ -1,0 +1,8 @@
+---
+# SELinux Handlers
+
+- name: restart auditd
+  systemd:
+    name: auditd
+    state: restarted
+  ignore_errors: yes

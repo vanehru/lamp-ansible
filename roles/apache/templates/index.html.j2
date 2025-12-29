@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAMP Stack - Welcome</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 50px;
+            max-width: 800px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        .success {
+            color: #10b981;
+            font-size: 1.5em;
+            margin: 20px 0;
+        }
+        .info-box {
+            background: #f3f4f6;
+            border-radius: 10px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: left;
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        .label {
+            font-weight: bold;
+            color: #6b7280;
+        }
+        .value {
+            color: #1f2937;
+        }
+        .links {
+            margin-top: 30px;
+        }
+        .btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin: 10px;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #5568d3;
+        }
+        .footer {
+            margin-top: 30px;
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 LAMP Stack Deployed!</h1>
+        <p class="success">✓ Your web server is running successfully</p>
+        
+        <div class="info-box">
+            <div class="info-item">
+                <span class="label">Server:</span>
+                <span class="value">{{ ansible_hostname }}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">IP Address:</span>
+                <span class="value">{{ ansible_default_ipv4.address }}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Operating System:</span>
+                <span class="value">{{ ansible_distribution }} {{ ansible_distribution_version }}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Web Server:</span>
+                <span class="value">Apache HTTP Server</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Document Root:</span>
+                <span class="value">{{ apache_document_root }}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">SELinux Status:</span>
+                <span class="value">{{ selinux_state | capitalize }}</span>
+            </div>
+        </div>
+
+        <div class="links">
+            <a href="/info.php" class="btn">📊 PHP Info</a>
+        </div>
+
+        <div class="footer">
+            <p>Deployed with Ansible | LAMP Stack Configuration</p>
+            <p>Apache • MySQL/MariaDB • PHP • SELinux Enabled</p>
+        </div>
+    </div>
+</body>
+</html>

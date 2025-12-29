@@ -1,0 +1,242 @@
+LAMP Stack Ansible Project Structure
+=====================================
+
+lamp-ansible/
+│
+├── 📄 ansible.cfg                      # Ansible configuration settings
+├── 📄 inventory.ini                    # Target hosts inventory
+├── 📄 site.yml                         # Main playbook (orchestrates all roles)
+├── 📄 .gitignore                       # Git ignore patterns
+│
+├── 📖 README.md                        # Comprehensive documentation
+├── 📖 QUICKSTART.md                    # 5-minute quick start guide
+├── 📖 PROJECT_STRUCTURE.txt            # This file
+│
+├── 🔧 deploy.sh                        # Interactive deployment script
+├── 🔧 verify.sh                        # Verification script
+│
+├── 📁 group_vars/                      # Global variables
+│   └── 📄 all.yml                      # Variables for all hosts
+│
+└── 📁 roles/                           # Ansible roles (modular components)
+    │
+    ├── 📁 common/                      # Common system setup
+    │   └── 📁 tasks/
+    │       └── 📄 main.yml             # System updates, packages, timezone
+    │
+    ├── 📁 selinux/                     # SELinux configuration
+    │   ├── 📁 tasks/
+    │   │   └── 📄 main.yml             # SELinux setup and booleans
+    │   └── 📁 handlers/
+    │       └── 📄 main.yml             # SELinux service handlers
+    │
+    ├── 📁 apache/                      # Apache web server
+    │   ├── 📁 tasks/
+    │   │   └── 📄 main.yml             # Apache installation & config
+    │   ├── 📁 handlers/
+    │   │   └── 📄 main.yml             # Apache service handlers
+    │   └── 📁 templates/
+    │       └── 📄 index.html.j2        # Welcome page template
+    │
+    ├── 📁 mysql/                       # MySQL/MariaDB database
+    │   ├── 📁 tasks/
+    │   │   └── 📄 main.yml             # MySQL installation & security
+    │   ├── 📁 handlers/
+    │   │   └── 📄 main.yml             # MySQL service handlers
+    │   └── 📁 templates/
+    │       └── 📄 my.cnf.j2            # MySQL credentials template
+    │
+    └── 📁 php/                         # PHP installation
+        ├── 📁 tasks/
+        │   └── 📄 main.yml             # PHP installation & config
+        └── 📁 templates/
+            ├── 📄 info.php.j2          # PHP info page template
+            └── 📄 db_test.php.j2       # Database test page template
+
+
+Key Files Description
+=====================
+
+Configuration Files:
+-------------------
+ansible.cfg         - Ansible behavior settings (inventory path, logging, etc.)
+inventory.ini       - Defines target servers and connection parameters
+site.yml           - Main playbook that calls all roles in sequence
+group_vars/all.yml - Variables used across all roles (passwords, ports, etc.)
+
+Documentation:
+-------------
+README.md          - Complete documentation with troubleshooting
+QUICKSTART.md      - Fast deployment guide (5 minutes)
+PROJECT_STRUCTURE.txt - This file (project overview)
+
+Scripts:
+--------
+deploy.sh          - Interactive deployment with menu options
+verify.sh          - Post-deployment verification script
+
+Roles:
+------
+common/            - System preparation (updates, packages, timezone)
+selinux/           - SELinux configuration for web services
+apache/            - Apache HTTP server setup with firewall rules
+mysql/             - MariaDB installation with secure configuration
+php/               - PHP installation with required modules
+
+
+Deployment Flow
+===============
+
+1. common role:
+   - Updates all system packages
+   - Installs EPEL and common utilities
+   - Sets timezone
+   - Configures firewall
+
+2. selinux role:
+   - Installs SELinux packages
+   - Configures SELinux mode (enforcing/permissive)
+   - Sets SELinux booleans for web services
+   - Applies proper contexts
+
+3. apache role:
+   - Installs Apache and mod_ssl
+   - Configures virtual hosts
+   - Sets up document root
+   - Opens firewall ports (80, 443)
+   - Deploys welcome page
+
+4. mysql role:
+   - Installs MariaDB server
+   - Secures installation (removes test db, anonymous users)
+   - Creates application database and user
+   - Configures bind address
+
+5. php role:
+   - Installs PHP and modules (mysqli, gd, xml, etc.)
+   - Configures PHP settings (memory, upload limits)
+   - Deploys test pages (info.php, db_test.php)
+   - Restarts Apache to load PHP
+
+
+Usage Examples
+==============
+
+Quick Deployment:
+-----------------
+./deploy.sh                              # Interactive menu
+ansible-playbook site.yml                # Direct deployment
+ansible-playbook site.yml -v             # Verbose output
+ansible-playbook site.yml --check        # Dry run
+
+Deploy Specific Components:
+---------------------------
+ansible-playbook site.yml --tags apache  # Only Apache
+ansible-playbook site.yml --tags mysql   # Only MySQL
+ansible-playbook site.yml --tags php     # Only PHP
+
+Verification:
+-------------
+./verify.sh                              # Run verification script
+ansible webservers -m ping               # Test connectivity
+ansible webservers -m shell -a "systemctl status httpd mariadb"
+
+Testing:
+--------
+http://YOUR_SERVER_IP/                   # Welcome page
+http://YOUR_SERVER_IP/info.php           # PHP information
+http://YOUR_SERVER_IP/db_test.php        # Database connection test
+
+
+Customization Points
+====================
+
+1. inventory.ini
+   - Add/modify target servers
+   - Configure SSH settings
+   - Set connection parameters
+
+2. group_vars/all.yml
+   - Change MySQL passwords
+   - Modify Apache ports
+   - Adjust PHP settings
+   - Configure SELinux mode
+
+3. Role templates
+   - Customize welcome page (apache/templates/index.html.j2)
+   - Modify PHP test pages (php/templates/*.j2)
+
+4. Role tasks
+   - Add additional packages
+   - Include custom configurations
+   - Extend functionality
+
+
+Security Checklist
+==================
+
+Before Production:
+------------------
+☐ Change all default passwords in group_vars/all.yml
+☐ Remove test pages (info.php, db_test.php)
+☐ Configure SSL/TLS certificates
+☐ Set SELinux to enforcing mode
+☐ Review firewall rules
+☐ Enable automatic security updates
+☐ Configure database backups
+☐ Use Ansible Vault for sensitive data
+☐ Restrict SSH access
+☐ Review Apache security settings
+
+
+Troubleshooting
+===============
+
+Connection Issues:
+------------------
+- Verify SSH access: ssh root@YOUR_SERVER_IP
+- Check inventory.ini configuration
+- Test with: ansible webservers -m ping -vvv
+
+Service Issues:
+---------------
+- Check logs: /var/log/httpd/error_log, /var/log/mariadb/mariadb.log
+- Verify services: systemctl status httpd mariadb
+- Check SELinux: ausearch -m avc -ts recent
+
+Firewall Issues:
+----------------
+- List rules: firewall-cmd --list-all
+- Test ports: telnet YOUR_SERVER_IP 80
+- Temporarily disable: systemctl stop firewalld (testing only!)
+
+
+Support Resources
+=================
+
+Documentation:
+- Ansible: https://docs.ansible.com/
+- Apache: https://httpd.apache.org/docs/
+- MariaDB: https://mariadb.org/documentation/
+- PHP: https://www.php.net/docs.php
+- SELinux: https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/using_selinux/
+
+Project Files:
+- README.md - Detailed documentation
+- QUICKSTART.md - Quick deployment guide
+- deploy.sh - Interactive deployment
+- verify.sh - Verification script
+
+
+Version Information
+===================
+
+Project: LAMP Stack Ansible Playbook
+Version: 1.0
+Created: 2024
+Target OS: RHEL/CentOS 7, 8, 9
+Ansible: 2.9+
+Components: Apache 2.4, MariaDB 10.x, PHP 7.x/8.x, SELinux
+
+=====================================
+End of Project Structure Documentation

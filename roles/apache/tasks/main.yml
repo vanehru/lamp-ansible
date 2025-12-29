@@ -1,0 +1,110 @@
+---
+# Apache Role - Web Server Installation and Configuration
+# This role installs and configures Apache HTTP Server
+
+- name: Install Apache web server
+  dnf:
+    name:
+      - httpd
+      - httpd-tools
+      - mod_ssl
+    state: present
+  tags: ['apache', 'packages']
+
+- name: Create document root directory
+  file:
+    path: "{{ apache_document_root }}"
+    state: directory
+    owner: apache
+    group: apache
+    mode: '0755'
+  tags: ['apache', 'config']
+
+- name: Configure Apache to listen on specified port
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^Listen '
+    line: "Listen {{ apache_listen_port }}"
+    backup: yes
+  notify: restart apache
+  tags: ['apache', 'config']
+
+- name: Set ServerAdmin in Apache configuration
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^ServerAdmin '
+    line: "ServerAdmin {{ apache_server_admin }}"
+    backup: yes
+  notify: restart apache
+  tags: ['apache', 'config']
+
+- name: Set DocumentRoot in Apache configuration
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^DocumentRoot '
+    line: 'DocumentRoot "{{ apache_document_root }}"'
+    backup: yes
+  notify: restart apache
+  tags: ['apache', 'config']
+
+- name: Configure Directory permissions in Apache
+  blockinfile:
+    path: /etc/httpd/conf/httpd.conf
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - Directory Config"
+    insertafter: '^DocumentRoot'
+    block: |
+      <Directory "{{ apache_document_root }}">
+          AllowOverride All
+          Require all granted
+      </Directory>
+    backup: yes
+  notify: restart apache
+  tags: ['apache', 'config']
+
+- name: Deploy default index.html page
+  template:
+    src: index.html.j2
+    dest: "{{ apache_document_root }}/index.html"
+    owner: apache
+    group: apache
+    mode: '0644'
+  tags: ['apache', 'content']
+
+- name: Configure firewall for HTTP
+  command: firewall-cmd --permanent --add-service=http
+  when: firewall_enabled | bool
+  failed_when: false
+  changed_when: false
+  tags: ['apache', 'firewall']
+
+- name: Configure firewall for HTTPS
+  command: firewall-cmd --permanent --add-service=https
+  when: firewall_enabled | bool
+  failed_when: false
+  changed_when: false
+  tags: ['apache', 'firewall']
+
+- name: Reload firewall
+  command: firewall-cmd --reload
+  when: firewall_enabled | bool
+  failed_when: false
+  changed_when: false
+  tags: ['apache', 'firewall']
+
+- name: Start and enable Apache service
+  systemd:
+    name: httpd
+    state: started
+    enabled: yes
+  tags: ['apache', 'service']
+
+- name: Verify Apache is running
+  systemd:
+    name: httpd
+  register: apache_status
+  tags: ['apache', 'verify']
+
+- name: Display Apache status
+  debug:
+    msg: "Apache is {{ apache_status.status.ActiveState }}"
+  tags: ['apache', 'verify']

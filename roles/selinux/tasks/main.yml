@@ -1,0 +1,89 @@
+---
+# SELinux Role - Configuration and Management
+# This role configures SELinux for web services
+
+- name: Install SELinux packages
+  dnf:
+    name:
+      - libselinux-python3
+      - policycoreutils
+      - policycoreutils-python-utils
+      - selinux-policy
+      - selinux-policy-targeted
+      - setroubleshoot-server
+      - setools-console
+    state: present
+  tags: ['selinux', 'packages']
+
+- name: Check current SELinux status
+  command: getenforce
+  register: selinux_status
+  changed_when: false
+  tags: ['selinux', 'check']
+
+- name: Display current SELinux status
+  debug:
+    msg: "Current SELinux status: {{ selinux_status.stdout }}"
+  tags: ['selinux', 'check']
+
+- name: Configure SELinux to desired state in config file
+  lineinfile:
+    path: /etc/selinux/config
+    regexp: '^SELINUX='
+    line: "SELINUX={{ selinux_state }}"
+    backup: yes
+  register: selinux_config
+  tags: ['selinux', 'config']
+
+- name: Set SELinux to desired state immediately
+  command: "setenforce {{ '1' if selinux_state == 'enforcing' else '0' }}"
+  when: selinux_state in ['enforcing', 'permissive']
+  failed_when: false
+  changed_when: false
+  tags: ['selinux', 'config']
+
+- name: Set SELinux booleans for web services
+  command: "setsebool -P {{ item }} on"
+  loop:
+    - httpd_can_network_connect
+    - httpd_can_network_connect_db
+    - httpd_execmem
+    - httpd_unified
+  failed_when: false
+  changed_when: false
+  tags: ['selinux', 'booleans']
+
+- name: Set SELinux context for web directory
+  command: "semanage fcontext -a -t httpd_sys_content_t '{{ apache_document_root }}(/.*)?'"
+  failed_when: false
+  changed_when: false
+  tags: ['selinux', 'context']
+
+- name: Check if web directory exists
+  stat:
+    path: "{{ apache_document_root }}"
+  register: web_dir_stat
+  tags: ['selinux', 'context']
+
+- name: Apply SELinux context to web directory
+  command: restorecon -Rv {{ apache_document_root }}
+  when: web_dir_stat.stat.exists
+  changed_when: false
+  tags: ['selinux', 'context']
+
+- name: Check if reboot is required for SELinux changes
+  debug:
+    msg: "WARNING: System reboot may be required if SELinux mode was changed from disabled to enforcing"
+  when: selinux_config.reboot_required | default(false)
+  tags: ['selinux', 'reboot']
+
+- name: Verify SELinux is working correctly
+  command: sestatus
+  register: sestatus_output
+  changed_when: false
+  tags: ['selinux', 'verify']
+
+- name: Display SELinux status
+  debug:
+    var: sestatus_output.stdout_lines
+  tags: ['selinux', 'verify']

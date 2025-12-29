@@ -1,0 +1,52 @@
+# Ansible
+*.retry
+*.log
+ansible.log
+.ansible/
+
+# Vault files
+*vault*
+*secret*
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Sensitive data
+# Note: vault.yml files should be encrypted with ansible-vault before committing
+# Unencrypted vault files should never be committed
+.vault_pass
+.vault_password
+host_vars/*/vault.yml
+*.pem
+*.key
+*.crt
+
+# Fact cache
+/tmp/ansible_facts/

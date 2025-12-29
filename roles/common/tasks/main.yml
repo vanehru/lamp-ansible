@@ -1,0 +1,81 @@
+---
+# Common Role - System Setup and Prerequisites
+# This role handles basic system configuration and updates
+
+- name: Update all packages to latest version
+  dnf:
+    name: '*'
+    state: latest
+    update_cache: yes
+  tags: ['packages', 'update']
+
+- name: Install EPEL repository for RHEL 9
+  dnf:
+    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm"
+    state: present
+    disable_gpg_check: yes
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == "9"
+  tags: ['packages', 'epel']
+
+- name: Install EPEL repository for RHEL 8
+  dnf:
+    name: epel-release
+    state: present
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == "8"
+  tags: ['packages', 'epel']
+
+- name: Install EPEL repository for CentOS
+  dnf:
+    name: epel-release
+    state: present
+  when: ansible_distribution == "CentOS"
+  tags: ['packages', 'epel']
+
+- name: Install common required packages
+  dnf:
+    name:
+      - vim
+      - wget
+      - curl
+      - git
+      - net-tools
+      - policycoreutils-python-utils
+      - setroubleshoot-server
+    state: present
+  tags: ['packages']
+
+- name: Set timezone
+  command: timedatectl set-timezone "{{ timezone }}"
+  changed_when: false
+  tags: ['timezone']
+
+- name: Ensure firewalld is installed
+  dnf:
+    name: firewalld
+    state: present
+  when: firewall_enabled | bool
+  tags: ['firewall']
+
+- name: Start and enable firewalld
+  systemd:
+    name: firewalld
+    state: started
+    enabled: yes
+  when: firewall_enabled | bool
+  tags: ['firewall']
+
+- name: Disable SELinux temporarily if needed for initial setup
+  command: setenforce 0
+  when: ansible_selinux.status is defined and ansible_selinux.status == "enabled" and ansible_selinux.mode != "permissive"
+  failed_when: false
+  changed_when: false
+  tags: ['selinux']
+
+- name: Display system information
+  debug:
+    msg:
+      - "Hostname: {{ ansible_hostname }}"
+      - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+      - "Kernel: {{ ansible_kernel }}"
+      - "Architecture: {{ ansible_architecture }}"
+  tags: ['info']

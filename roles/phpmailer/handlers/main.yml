@@ -1,0 +1,9 @@
+---
+# PHPMailer Role Handlers
+# These handlers are triggered when configuration changes require service restarts
+
+- name: restart apache
+  systemd:
+    name: httpd
+    state: restarted
+  listen: "restart apache"

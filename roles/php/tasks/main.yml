@@ -1,0 +1,122 @@
+---
+# PHP Role - PHP Installation and Configuration
+# This role installs PHP and required modules for web applications
+
+- name: Install PHP and common modules
+  dnf:
+    name:
+      - php
+      - php-mysqlnd
+      - php-fpm
+      - php-opcache
+      - php-gd
+      - php-xml
+      - php-mbstring
+      - php-json
+      - php-curl
+      - php-zip
+      - php-intl
+      - php-bcmath
+    state: present
+  notify: restart apache
+  tags: ['php', 'packages']
+
+- name: Configure PHP memory limit
+  lineinfile:
+    path: /etc/php.ini
+    regexp: '^memory_limit'
+    line: "memory_limit = {{ php_memory_limit }}"
+    backup: yes
+  notify: restart apache
+  tags: ['php', 'config']
+
+- name: Configure PHP max execution time
+  lineinfile:
+    path: /etc/php.ini
+    regexp: '^max_execution_time'
+    line: "max_execution_time = {{ php_max_execution_time }}"
+    backup: yes
+  notify: restart apache
+  tags: ['php', 'config']
+
+- name: Configure PHP upload max filesize
+  lineinfile:
+    path: /etc/php.ini
+    regexp: '^upload_max_filesize'
+    line: "upload_max_filesize = {{ php_upload_max_filesize }}"
+    backup: yes
+  notify: restart apache
+  tags: ['php', 'config']
+
+- name: Configure PHP post max size
+  lineinfile:
+    path: /etc/php.ini
+    regexp: '^post_max_size'
+    line: "post_max_size = {{ php_post_max_size }}"
+    backup: yes
+  notify: restart apache
+  tags: ['php', 'config']
+
+- name: Set PHP timezone
+  lineinfile:
+    path: /etc/php.ini
+    regexp: '^;?date.timezone'
+    line: "date.timezone = {{ timezone }}"
+    backup: yes
+  notify: restart apache
+  tags: ['php', 'config']
+
+- name: Enable PHP error display for development (disable in production)
+  lineinfile:
+    path: /etc/php.ini
+    regexp: '^display_errors'
+    line: "display_errors = On"
+    backup: yes
+  notify: restart apache
+  tags: ['php', 'config']
+
+- name: Deploy PHP info test page
+  template:
+    src: info.php.j2
+    dest: "{{ apache_document_root }}/info.php"
+    owner: apache
+    group: apache
+    mode: '0644'
+  tags: ['php', 'content']
+
+- name: Deploy PHP MySQL connection test page
+  template:
+    src: db_test.php.j2
+    dest: "{{ apache_document_root }}/db_test.php"
+    owner: apache
+    group: apache
+    mode: '0644'
+  tags: ['php', 'content']
+
+- name: Restart Apache to load PHP module
+  systemd:
+    name: httpd
+    state: restarted
+  tags: ['php', 'service']
+
+- name: Verify PHP installation
+  command: php -v
+  register: php_version
+  changed_when: false
+  tags: ['php', 'verify']
+
+- name: Display PHP version
+  debug:
+    var: php_version.stdout_lines
+  tags: ['php', 'verify']
+
+- name: List installed PHP modules
+  command: php -m
+  register: php_modules
+  changed_when: false
+  tags: ['php', 'verify']
+
+- name: Display installed PHP modules
+  debug:
+    msg: "PHP modules installed: {{ php_modules.stdout_lines | length }} modules"
+  tags: ['php', 'verify']
