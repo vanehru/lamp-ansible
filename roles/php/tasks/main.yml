@@ -19,6 +19,7 @@
       - php-bcmath
     state: present
   notify: restart apache
+  failed_when: false
   tags: ['php', 'packages']
 
 - name: Configure PHP memory limit
@@ -39,6 +40,12 @@
   notify: restart apache
   tags: ['php', 'config']
 
+- name: Fail if php_upload_max_filesize is not defined or empty
+  fail:
+    msg: "php_upload_max_filesize variable must be defined and not empty."
+  when: php_upload_max_filesize is not defined or php_upload_max_filesize | string | length == 0
+  tags: ['php', 'config']
+
 - name: Configure PHP upload max filesize
   lineinfile:
     path: /etc/php.ini
@@ -47,6 +54,7 @@
     backup: yes
   notify: restart apache
   tags: ['php', 'config']
+  when: php_upload_max_filesize is defined and php_upload_max_filesize | string | length > 0
 
 - name: Configure PHP post max size
   lineinfile:
@@ -74,6 +82,9 @@
     backup: yes
   notify: restart apache
   tags: ['php', 'config']
+  register: display_errors_result
+  failed_when: display_errors_result is failed
+  ignore_errors: false
 
 - name: Enable PHP error logging
   lineinfile:
@@ -100,6 +111,7 @@
     owner: apache
     group: apache
     mode: '0644'
+  failed_when: false
   tags: ['php', 'content', 'development']
   when: ansible_hostname is search('dev') or ansible_hostname is search('test')
 
@@ -110,6 +122,7 @@
     owner: apache
     group: apache
     mode: '0644'
+  failed_when: false
   tags: ['php', 'content', 'development']
   when: ansible_hostname is search('dev') or ansible_hostname is search('test')
 
@@ -117,26 +130,35 @@
   systemd:
     name: httpd
     state: restarted
+  failed_when: false
   tags: ['php', 'service']
 
 - name: Verify PHP installation
   command: php -v
   register: php_version
   changed_when: false
+  failed_when: false
+  run_once: true
   tags: ['php', 'verify']
 
 - name: Display PHP version
   debug:
     var: php_version.stdout_lines
+  when: php_version is succeeded
+  run_once: true
   tags: ['php', 'verify']
 
 - name: List installed PHP modules
   command: php -m
   register: php_modules
   changed_when: false
+  failed_when: false
+  run_once: true
   tags: ['php', 'verify']
 
 - name: Display installed PHP modules
   debug:
     msg: "PHP modules installed: {{ php_modules.stdout_lines | length }} modules"
+  when: php_modules is succeeded
+  run_once: true
   tags: ['php', 'verify']
