@@ -1,17 +1,17 @@
 ---
-# MySQL/MariaDB Handlers
+# MySQL Handlers
 
-- name: restart mariadb
+- name: restart mysql
   systemd:
-    name: mariadb
+    name: mysqld
     state: restarted
     enabled: yes
   become: yes
-  listen: "restart mariadb"
+  listen: "restart mysql"
 
-- name: reload mariadb
+- name: reload mysql
   systemd:
-    name: mariadb
+    name: mysqld
     state: reloaded
   become: yes
-  listen: "reload mariadb"
+  listen: "reload mysql"

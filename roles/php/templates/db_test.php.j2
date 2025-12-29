@@ -1,7 +1,7 @@
 <?php
 /**
  * Database Connection Test Page
- * Tests connectivity to MySQL/MariaDB database
+ * Tests connectivity to MySQL database
  */
 
 $page_title = "Database Connection Test";
@@ -113,7 +113,7 @@ $db_pass = "{{ mysql_user_password }}";
             
             echo '<div class="success">';
             echo '<strong>✓ Database Connection Successful!</strong><br>';
-            echo 'Successfully connected to MySQL/MariaDB database.';
+            echo 'Successfully connected to MySQL database.';
             echo '</div>';
             
             // Get MySQL version
@@ -177,7 +177,7 @@ $db_pass = "{{ mysql_user_password }}";
             
             echo '<h2>Troubleshooting Tips</h2>';
             echo '<ul>';
-            echo '<li>Verify that MariaDB/MySQL service is running</li>';
+            echo '<li>Verify that MySQL service is running</li>';
             echo '<li>Check database credentials in the configuration</li>';
             echo '<li>Ensure the database exists</li>';
             echo '<li>Verify user permissions</li>';

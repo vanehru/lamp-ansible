@@ -1,19 +1,19 @@
 ---
-# MySQL/MariaDB Role - Database Server Installation and Configuration
-# This role installs and configures MariaDB database server
+# MySQL Role - Database Server Installation and Configuration
+# This role installs and configures MySQL database server
 
-- name: Install MariaDB server and client
+- name: Install MySQL server and client
   dnf:
     name:
-      - mariadb-server
-      - mariadb
+      - mysql-server
+      - mysql
       - python3-PyMySQL
     state: present
   tags: ['mysql', 'packages']
 
-- name: Start and enable MariaDB service
+- name: Start and enable MySQL service
   systemd:
-    name: mariadb
+    name: mysqld
     state: started
     enabled: yes
   tags: ['mysql', 'service']
@@ -29,7 +29,7 @@
   mysql_user:
     name: root
     password: "{{ mysql_root_password }}"
-    login_unix_socket: /var/lib/mysql/mysql.sock
+    login_unix_socket: /var/run/mysqld/mysqld.sock
     state: present
   when: mysql_root_status.rc == 0
   no_log: true
@@ -84,25 +84,25 @@
   no_log: true
   tags: ['mysql', 'database']
 
-- name: Configure MariaDB bind address
+- name: Configure MySQL bind address
   lineinfile:
-    path: /etc/my.cnf.d/mariadb-server.cnf
+    path: /etc/my.cnf.d/mysql-server.cnf
     regexp: '^bind-address'
     line: "bind-address = {{ mysql_bind_address }}"
     insertafter: '^\[mysqld\]'
     backup: yes
-  notify: restart mariadb
+  notify: restart mysql
   tags: ['mysql', 'config']
 
-- name: Ensure MariaDB is running
+- name: Ensure MySQL is running
   systemd:
-    name: mariadb
-  register: mariadb_status
+    name: mysqld
+  register: mysql_status
   tags: ['mysql', 'verify']
 
-- name: Display MariaDB status
+- name: Display MySQL status
   debug:
-    msg: "MariaDB is {{ mariadb_status.status.ActiveState }}"
+    msg: "MySQL is {{ mysql_status.status.ActiveState }}"
   tags: ['mysql', 'verify']
 
 - name: Display database information
