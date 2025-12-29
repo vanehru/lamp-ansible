@@ -4,8 +4,7 @@
 ansible.log
 .ansible/
 
-# Vault files
-*vault*
+# Vault files - only ignore unencrypted vault password files
 *secret*
 
 # Temporary files
